@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f4ee">
+<title>Harmony's coins</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--bg:#050505;--paper:#080808;--ink:#f5f5f3;--muted:#aaa9a6;--gold:#d5a02b;--gold-pale:#292929;--line:#242424;--green:#9aaf98;--red:#d17b70}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+button,input{font:inherit}button{cursor:pointer;border:0}
+.wrap{max-width:960px;margin:auto;padding:22px 18px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:25px}
+.brand{display:flex;align-items:center;gap:11px}.mark{width:42px;height:42px;border-radius:14px;background:#252525;display:grid;place-items:center;font-size:23px}
+h1{font:600 21px system-ui,sans-serif;margin:0;letter-spacing:.1px}.sub{color:var(--muted);font-size:12px;margin-top:2px}
+.topbtn,.tab,.smallbtn{background:#202020;border:1px solid #333;border-radius:12px;padding:9px 13px;color:var(--ink)}
+.hero{background:#242424;border:1px solid #292929;border-radius:26px;padding:23px;display:flex;justify-content:space-between;align-items:center;gap:20px;box-shadow:none}
+.eyebrow{color:#c7c5c0;font-size:12px;text-transform:uppercase;letter-spacing:1.3px}.balance{font:700 48px system-ui,sans-serif;margin:3px 0;color:var(--gold)}.coin{font-size:30px;vertical-align:4px}.hero p{margin:5px 0 0;color:#c2c0bb;font-size:13px}.hero-art{font-size:56px;background:#30302c;border-radius:50%;width:94px;height:94px;display:grid;place-items:center;flex-shrink:0}
+.sectionhead{display:flex;align-items:end;justify-content:space-between;margin:28px 2px 13px}.sectionhead h2{font:650 25px system-ui,sans-serif;margin:0}.sectionhead p{color:var(--muted);font-size:12px;margin:3px 0 0}
+.grid{display:grid;grid-template-columns:1fr;gap:13px}
+.goal{background:#050505;border:2px solid #242424;border-radius:23px;padding:20px 18px;min-width:0}
+.goaltop{display:flex;align-items:center;gap:12px}.goalicon{width:54px;height:54px;background:#111;border-radius:14px;display:grid;place-items:center;font-size:34px}.goalname{font-weight:700;font-size:22px;line-height:1.2}.goalmeta{font-size:12px;color:var(--muted);margin-top:3px}.amount{margin-left:auto;font-weight:750;white-space:nowrap;font-size:21px}
+.track{height:10px;background:#292929;border-radius:10px;overflow:hidden;margin:17px 0 9px}.fill{height:100%;background:var(--gold);border-radius:10px}.goalfoot{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}
+.actions{display:flex;gap:10px;margin-top:14px;align-items:center;justify-content:flex-end}.actions button{flex:0 0 58px;font-size:31px;line-height:1;padding:9px 12px;height:58px;border-radius:15px}.actions button:disabled{opacity:.28;cursor:not-allowed}
+.primary{background:#30302e;color:white;border-radius:12px;padding:11px 15px}.secondary{background:#242424;color:white;border-radius:12px;padding:11px 15px}
+.tabs{display:flex;gap:8px;margin:22px 0 0}.tab.active{background:#30302e;color:white;border-color:#444}
+.panel{background:#111;border:1px solid #292929;border-radius:18px;padding:18px;margin-top:14px}.hidden{display:none!important}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}input{width:100%;padding:11px 12px;border:1px solid #383838;border-radius:11px;background:#090909;color:var(--ink)}
+.history{list-style:none;padding:0;margin:0}.history li{padding:11px 0;border-bottom:1px solid #292929;display:flex;justify-content:space-between;gap:12px;font-size:13px}.history li:last-child{border:0}.plus{color:#a7c2a5;font-weight:700}.minus{color:#e49a8e;font-weight:700}
+.notice{font-size:12px;color:var(--muted);line-height:1.5;margin-top:15px}.empty{padding:25px;text-align:center;color:var(--muted);background:#101010;border:1px dashed #333;border-radius:16px}
+footer{text-align:center;color:#777;font-size:11px;margin:28px 0}
+.modalback{position:fixed;inset:0;background:#000c;display:grid;place-items:center;padding:18px;z-index:5}.modal{background:#171717;color:var(--ink);padding:22px;border:1px solid #333;border-radius:20px;width:min(420px,100%);box-shadow:0 20px 60px #0008}.modal h3{font:650 22px system-ui,sans-serif;margin:0 0 7px}.modal p{color:var(--muted);font-size:13px}
+@media(min-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.wrap{padding:16px 13px 35px}.hero{padding:18px}.balance{font-size:43px}.hero-art{width:72px;height:72px;font-size:43px}.goal{padding:17px 15px}.goalname{font-size:19px}.amount{font-size:19px}.actions button{flex-basis:54px;height:54px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand"><div class="mark">🪙</div><div><h1>Harmony's coins</h1><div class="sub">Une petite pièce après l'autre</div></div></div><button class="topbtn" id="parentBtn">Espace parent ↗</button></header>
+<section class="hero"><div><div class="eyebrow">Pièces disponibles</div><div class="balance"><span id="available">0</span> <span class="coin">🪙</span></div><p>À toi de choisir où les faire grandir.</p></div><div class="hero-art">🌱</div></section>
+<div class="sectionhead"><div><h2>Mes projets</h2><p>Chaque pièce te rapproche de ton envie.</p></div></div>
+<div class="grid" id="goals"></div>
+
+<div class="tabs"><button class="tab active" id="homeTab">Mes projets</button><button class="tab" id="historyTab">Historique</button></div>
+<section id="historyPanel" class="panel hidden"><h3 style="margin:0 0 10px;font:600 19px Georgia,serif">Les dernières pièces</h3><ul class="history" id="history"></ul></section>
+<section id="parentPanel" class="panel hidden">
+ <div class="row"><div><h2 style="font:600 21px Georgia,serif;margin:0">Espace parent</h2><div class="sub">Gérer les pièces et les projets</div></div><button class="smallbtn" id="closeParent">Fermer</button></div>
+ <div class="row" style="margin-top:14px"><button class="secondary" data-award="1">＋ 1 pièce</button><button class="secondary" data-award="2">＋ 2 pièces</button><button class="secondary" data-award="5">＋ 5 pièces</button><button class="secondary" data-award="10">＋ 10 pièces</button></div>
+ <label for="reason">Pourquoi ? (facultatif)</label><input id="reason" placeholder="Devoirs, rangement, coup de main…">
+ <div class="sectionhead"><div><h2 style="font-size:18px">Ajouter un projet</h2><p>Un objectif à atteindre</p></div></div>
+ <div class="row"><div><label for="newName">Nom du projet</label><input id="newName" placeholder="Ex. : Un nouveau livre"></div><div style="max-width:90px"><label for="newEmoji">Icône</label><input id="newEmoji" value="🎁" maxlength="4"></div></div>
+ <div class="row"><div><label for="newTarget">Objectif (pièces)</label><input id="newTarget" type="number" min="1" value="20"></div><div style="align-self:end"><button class="primary" id="addGoal" style="width:100%">Créer le projet</button></div></div>
+ <div class="sectionhead"><div><h2 style="font-size:18px">Mes projets actuels</h2></div></div><div id="manageGoals"></div>
+ <p class="notice">Version 1 : les données sont enregistrées sur cet appareil. La synchronisation entre ton téléphone et la tablette sera ajoutée dans une prochaine étape. Pense à exporter une sauvegarde si tu changes d'appareil.</p>
+ <div class="row" style="margin-top:12px"><button class="smallbtn" id="exportBtn">Exporter une sauvegarde</button><button class="smallbtn" id="importBtn">Importer</button><input type="file" id="importFile" accept="application/json" class="hidden"></div>
+ <div style="margin-top:15px"><button class="smallbtn" id="pinBtn">Modifier le code parent</button> <button class="smallbtn" id="resetBtn" style="color:var(--red)">Réinitialiser les données</button></div>
+</section>
+<footer>Les Petites Pièces · Une petite banque pour les grands projets</footer>
+</div>
+<div id="modal" class="modalback hidden"><div class="modal"><h3 id="modalTitle">Espace parent</h3><p id="modalText">Entre ton code parent pour continuer.</p><label id="modalLabel" for="modalInput">Code parent</label><input id="modalInput" type="password" inputmode="numeric" autocomplete="off"><div class="row" style="margin-top:15px"><button class="smallbtn" id="cancelModal">Annuler</button><button class="primary" id="confirmModal">Valider</button></div></div></div>
+<script>
+const KEY='petites-pieces-v1';
+const defaults={pin:'2468',available:0,goals:[{id:'toy',name:'Un nouveau jouet',emoji:'🧸',target:30,saved:0},{id:'trip',name:'Une sortie en famille',emoji:'🌿',target:60,saved:0},{id:'book',name:'Un livre',emoji:'📚',target:20,saved:0}],history:[]};
+let state=load(), pending=null;
+function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return structuredClone(defaults)}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));render()}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function log(text,amount){state.history.unshift({text,amount,date:new Date().toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})});state.history=state.history.slice(0,80)}
+function render(){
+ document.getElementById('available').textContent=state.available;
+ const goals=document.getElementById('goals');
+ goals.innerHTML=state.goals.length?state.goals.map(g=>{let pct=Math.min(100,Math.round(g.saved/g.target*100));return `<article class="goal"><div class="goaltop"><div class="goalicon">${esc(g.emoji)}</div><div><div class="goalname">${esc(g.name)}</div><div class="goalmeta">Objectif : ${g.target} pièces</div></div><div class="amount">${g.saved}/${g.target}</div></div><div class="track"><div class="fill" style="width:${pct}%"></div></div><div class="goalfoot"><span>${pct}% atteint</span><span>${Math.max(0,g.target-g.saved)} pièces restantes</span></div><div class="actions"><button class="secondary" data-minus="${g.id}" ${g.saved<1?'disabled':''} aria-label="Rendre une pièce au stock">−</button><button class="primary" data-plus="${g.id}" ${state.available<1?'disabled':''} aria-label="Ajouter une pièce au projet">＋</button></div></article>`}).join(''):'<div class="empty">Aucun projet pour le moment. Demande à un parent d’en ajouter un !</div>';
+ document.getElementById('history').innerHTML=state.history.length?state.history.map(h=>`<li><span>${esc(h.text)}<br><small style="color:var(--muted)">${esc(h.date)}</small></span><b class="${h.amount>=0?'plus':'minus'}">${h.amount>=0?'+':''}${h.amount} 🪙</b></li>`).join(''):'<li style="color:var(--muted)">Aucune activité pour le moment.</li>';
+ document.getElementById('manageGoals').innerHTML=state.goals.map(g=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(g.emoji)} ${esc(g.name)} <small style="color:var(--muted)">(${g.saved}/${g.target})</small></span><button class="smallbtn" data-delete="${g.id}" style="flex:0 0 auto">Supprimer</button></div>`).join('');
+}
+document.getElementById('goals').addEventListener('click',e=>{
+ const plus=e.target.closest('[data-plus]'), minus=e.target.closest('[data-minus]');
+ if(plus){const g=state.goals.find(x=>x.id===plus.dataset.plus);if(!g||state.available<1)return;state.available-=1;g.saved+=1;log(`Pièce ajoutée · ${g.name}`,-1);save();if(g.saved===g.target)alert('Bravo ! Objectif atteint ! 🎉');}
+ if(minus){const g=state.goals.find(x=>x.id===minus.dataset.minus);if(!g||g.saved<1)return;g.saved-=1;state.available+=1;log(`Pièce rendue au stock · ${g.name}`,1);save();}
+});
+function modal(title,text,label,value,callback){pending=callback;document.getElementById('modalTitle').textContent=title;document.getElementById('modalText').textContent=text;document.getElementById('modalLabel').textContent=label;document.getElementById('modalInput').value=value||'';document.getElementById('modal').classList.remove('hidden');document.getElementById('modalInput').focus()}
+function closeModal(){document.getElementById('modal').classList.add('hidden');pending=null}
+document.getElementById('parentBtn').onclick=()=>modal('Espace parent','Entre ton code parent pour gérer les pièces.','Code parent','',v=>{if(v===state.pin){document.getElementById('parentPanel').classList.remove('hidden');document.getElementById('parentPanel').scrollIntoView({behavior:'smooth'});closeModal()}else{document.getElementById('modalText').textContent='Code incorrect. Réessaie.'}});
+document.getElementById('cancelModal').onclick=closeModal;document.getElementById('confirmModal').onclick=()=>pending&&pending(document.getElementById('modalInput').value);document.getElementById('modalInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('confirmModal').click()});
+document.getElementById('closeParent').onclick=()=>{document.getElementById('parentPanel').classList.add('hidden');};
+document.querySelectorAll('[data-award]').forEach(b=>b.onclick=()=>{let n=+b.dataset.award;state.available+=n;log(`Pièces offertes${document.getElementById('reason').value.trim()?' · '+document.getElementById('reason').value.trim():''}`,n);document.getElementById('reason').value='';save()});
+document.getElementById('addGoal').onclick=()=>{let name=document.getElementById('newName').value.trim(),target=+document.getElementById('newTarget').value,emoji=document.getElementById('newEmoji').value.trim()||'🎁';if(!name||target<1)return alert('Ajoute un nom et un objectif valide.');state.goals.push({id:crypto.randomUUID(),name,emoji,target,saved:0});document.getElementById('newName').value='';save()};
+document.getElementById('manageGoals').onclick=e=>{let id=e.target.dataset.delete;if(!id)return;if(!confirm('Supprimer ce projet ? Les pièces déjà affectées seront rendues au solde disponible.'))return;let g=state.goals.find(x=>x.id===id);if(g){state.available+=g.saved;log(`Récupération des pièces · ${g.name}`,g.saved);state.goals=state.goals.filter(x=>x.id!==id);save()}};
+document.getElementById('homeTab').onclick=()=>{document.getElementById('historyPanel').classList.add('hidden');document.getElementById('homeTab').classList.add('active');document.getElementById('historyTab').classList.remove('active')};
+document.getElementById('historyTab').onclick=()=>{document.getElementById('historyPanel').classList.remove('hidden');document.getElementById('historyTab').classList.add('active');document.getElementById('homeTab').classList.remove('active')};
+document.getElementById('homeTab').onclick=()=>{document.getElementById('historyPanel').classList.add('hidden');document.getElementById('homeTab').classList.add('active');document.getElementById('historyTab').classList.remove('active')};
+document.getElementById('parentPanel').addEventListener('click',e=>{if(e.target.id==='pinBtn')modal('Nouveau code','Choisis un code parent à 4 chiffres.','Nouveau code','',v=>{if(!/^\d{4}$/.test(v))return alert('Le code doit contenir 4 chiffres.');state.pin=v;save();closeModal()})});
+document.getElementById('resetBtn').onclick=()=>{if(confirm('Effacer tous les projets et toutes les pièces ?')){state=structuredClone(defaults);save()}};
+document.getElementById('exportBtn').onclick=()=>{let a=document.createElement('a'),blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='les-petites-pieces-sauvegarde.json';a.click();URL.revokeObjectURL(a.href)};
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=async e=>{try{let obj=JSON.parse(await e.target.files[0].text());if(!Array.isArray(obj.goals)||typeof obj.available!=='number')throw 0;state={...defaults,...obj};save();alert('Sauvegarde importée.')}catch{alert('Fichier de sauvegarde invalide.')}};
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+render();
+</script>
+</body></html>
