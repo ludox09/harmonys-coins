@@ -486,7 +486,27 @@ db.auth.getSession().then(async ({ data, error }) => {
     }
   }
 });
+// Actualisation automatique des données toutes les 5 secondes
+setInterval(async () => {
+  if (familyId && document.visibilityState === 'visible') {
+    try {
+      await refresh();
+    } catch (err) {
+      console.log('Actualisation différée', err);
+    }
+  }
+}, 5000);
 
+// Actualiser aussi lorsque l'on revient sur l'application
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && familyId) {
+    try {
+      await refresh();
+    } catch (err) {
+      console.log('Actualisation différée', err);
+    }
+  }
+});
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
      }
