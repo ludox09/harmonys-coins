@@ -61,6 +61,7 @@ footer{text-align:center;color:#777;font-size:11px;margin:28px 0}
 <footer>Harmony's coins· Une petite banque sympatique</footer>
 </div>
 <div id="modal" class="modalback hidden"><div class="modal"><h3 id="modalTitle">Espace parent</h3><p id="modalText">Entre ton code parent pour continuer.</p><label id="modalLabel" for="modalInput">Code parent</label><input id="modalInput" type="password" inputmode="numeric" autocomplete="off"><div class="row" style="margin-top:15px"><button class="smallbtn" id="cancelModal">Annuler</button><button class="primary" id="confirmModal">Valider</button></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const KEY='petites-pieces-v1';
 const defaults={pin:'2468',available:0,goals:[{id:'toy',name:'Un nouveau jouet',emoji:'🧸',target:30,saved:0},{id:'trip',name:'Une sortie en famille',emoji:'🌿',target:60,saved:0},{id:'book',name:'Un livre',emoji:'📚',target:20,saved:0}],history:[]};
