@@ -63,42 +63,432 @@ footer{text-align:center;color:#777;font-size:11px;margin:28px 0}
 <div id="modal" class="modalback hidden"><div class="modal"><h3 id="modalTitle">Espace parent</h3><p id="modalText">Entre ton code parent pour continuer.</p><label id="modalLabel" for="modalInput">Code parent</label><input id="modalInput" type="password" inputmode="numeric" autocomplete="off"><div class="row" style="margin-top:15px"><button class="smallbtn" id="cancelModal">Annuler</button><button class="primary" id="confirmModal">Valider</button></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const KEY='petites-pieces-v1';
-const defaults={pin:'2468',available:0,goals:[{id:'toy',name:'Un nouveau jouet',emoji:'🧸',target:30,saved:0},{id:'trip',name:'Une sortie en famille',emoji:'🌿',target:60,saved:0},{id:'book',name:'Un livre',emoji:'📚',target:20,saved:0}],history:[]};
-let state=load(), pending=null;
-function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return structuredClone(defaults)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(state));render()}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function log(text,amount){state.history.unshift({text,amount,date:new Date().toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})});state.history=state.history.slice(0,80)}
-function render(){
- document.getElementById('available').textContent=state.available;
- const goals=document.getElementById('goals');
- goals.innerHTML=state.goals.length?state.goals.map(g=>{let pct=Math.min(100,Math.round(g.saved/g.target*100));return `<article class="goal"><div class="goaltop"><div class="goalicon">${esc(g.emoji)}</div><div><div class="goalname">${esc(g.name)}</div><div class="goalmeta">Objectif : ${g.target} pièces</div></div><div class="amount">${g.saved}/${g.target}</div></div><div class="track"><div class="fill" style="width:${pct}%"></div></div><div class="goalfoot"><span>${pct}% atteint</span><span>${Math.max(0,g.target-g.saved)} pièces restantes</span></div><div class="actions"><button class="secondary" data-minus="${g.id}" ${g.saved<1?'disabled':''} aria-label="Rendre une pièce au stock">−</button><button class="primary" data-plus="${g.id}" ${state.available<1?'disabled':''} aria-label="Ajouter une pièce au projet">＋</button></div></article>`}).join(''):'<div class="empty">Aucun projet pour le moment. Demande à un parent d’en ajouter un !</div>';
- document.getElementById('history').innerHTML=state.history.length?state.history.map(h=>`<li><span>${esc(h.text)}<br><small style="color:var(--muted)">${esc(h.date)}</small></span><b class="${h.amount>=0?'plus':'minus'}">${h.amount>=0?'+':''}${h.amount} 🪙</b></li>`).join(''):'<li style="color:var(--muted)">Aucune activité pour le moment.</li>';
- document.getElementById('manageGoals').innerHTML=state.goals.map(g=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(g.emoji)} ${esc(g.name)} <small style="color:var(--muted)">(${g.saved}/${g.target})</small></span><button class="smallbtn" data-delete="${g.id}" style="flex:0 0 auto">Supprimer</button></div>`).join('');
+const SUPABASE_URL = 'https://bgpkclvxhzfhkvlfqiym.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_f51qd1cx666dsboYeqYagA_Tu_AQlx4';
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let state = { available: 0, goals: [], history: [] };
+let familyId = null;
+let role = null;
+let pending = null;
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;',
+    '"':'&quot;', "'":'&#39;'
+  }[c]));
 }
-document.getElementById('goals').addEventListener('click',e=>{
- const plus=e.target.closest('[data-plus]'), minus=e.target.closest('[data-minus]');
- if(plus){const g=state.goals.find(x=>x.id===plus.dataset.plus);if(!g||state.available<1)return;state.available-=1;g.saved+=1;log(`Pièce ajoutée · ${g.name}`,-1);save();if(g.saved===g.target)alert('Bravo ! Objectif atteint ! 🎉');}
- if(minus){const g=state.goals.find(x=>x.id===minus.dataset.minus);if(!g||g.saved<1)return;g.saved-=1;state.available+=1;log(`Pièce rendue au stock · ${g.name}`,1);save();}
+
+function showMessage(message) {
+  alert(message);
+}
+
+function createLoginScreen() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #loginScreen {
+      position:fixed; inset:0; z-index:99999;
+      background:#090909; color:#f5d77b;
+      display:flex; align-items:center; justify-content:center;
+      padding:24px; font-family:inherit;
+    }
+    #loginScreen .loginBox {
+      width:100%; max-width:360px;
+      background:#171717; border:1px solid #8d7135;
+      border-radius:18px; padding:25px;
+      box-sizing:border-box;
+    }
+    #loginScreen input {
+      display:block; width:100%; box-sizing:border-box;
+      margin:12px 0; padding:13px; border-radius:9px;
+      border:1px solid #8d7135; background:#090909;
+      color:white; font-size:16px;
+    }
+    #loginScreen button {
+      width:100%; padding:13px; margin-top:10px;
+      border:0; border-radius:9px; background:#d6b45c;
+      color:#171717; font-weight:bold; font-size:16px;
+    }
+    #loginError {color:#ff9b9b; font-size:14px; margin-top:12px}
+    #sessionInfo {
+      position:fixed; top:8px; right:8px; z-index:1000;
+      background:#171717; color:#f5d77b;
+      border:1px solid #8d7135; border-radius:9px;
+      padding:7px 10px; font-size:12px;
+    }
+    #sessionInfo button {
+      margin-left:8px; background:transparent;
+      color:#f5d77b; border:0;
+    }
+  `;
+  document.head.appendChild(style);
+
+  document.body.insertAdjacentHTML('beforeend', `
+    <div id="loginScreen">
+      <div class="loginBox">
+        <h2 style="text-align:center">Harmony's coins</h2>
+        <p style="text-align:center;color:#ddd">
+          Connecte-toi à ton espace
+        </p>
+        <form id="loginForm">
+          <input id="loginEmail" type="email"
+            placeholder="Adresse e-mail" required autocomplete="username">
+          <input id="loginPassword" type="password"
+            placeholder="Mot de passe" required autocomplete="current-password">
+          <button type="submit">Se connecter</button>
+        </form>
+        <div id="loginError"></div>
+      </div>
+    </div>
+  `);
+
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const button = e.target.querySelector('button');
+    const error = document.getElementById('loginError');
+    button.disabled = true;
+    button.textContent = 'Connexion...';
+    error.textContent = '';
+
+    const { data, error: loginError } = await db.auth.signInWithPassword({
+      email: document.getElementById('loginEmail').value.trim(),
+      password: document.getElementById('loginPassword').value
+    });
+
+    button.disabled = false;
+    button.textContent = 'Se connecter';
+
+    if (loginError) {
+      error.textContent = 'Connexion impossible. Vérifie ton e-mail et ton mot de passe.';
+      return;
+    }
+
+    try {
+      await startApp(data.user);
+    } catch (err) {
+      error.textContent = err.message || 'Impossible de charger les données.';
+    }
+  });
+}
+
+async function startApp(user) {
+  const { data: member, error } = await db
+    .from('family_members')
+    .select('family_id, role')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error || !member) {
+    await db.auth.signOut();
+    throw new Error("Ce compte n'est pas autorisé pour cette famille.");
+  }
+
+  familyId = member.family_id;
+  role = member.role;
+
+  if (role === 'parent') {
+    const { error: initError } = await db.rpc('initialize_family');
+    if (initError) throw initError;
+  }
+
+  await loadData();
+
+  document.getElementById('loginScreen')?.remove();
+
+  document.getElementById('parentBtn').style.display =
+    role === 'parent' ? '' : 'none';
+
+  document.getElementById('parentPanel').classList.add('hidden');
+
+  ['pinBtn','resetBtn','importBtn','exportBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  document.body.insertAdjacentHTML('beforeend', `
+    <div id="sessionInfo">
+      ${role === 'parent' ? 'Espace parent' : 'Espace enfant'}
+      <button id="logoutBtn">Déconnexion</button>
+    </div>
+  `);
+
+  document.getElementById('logoutBtn').onclick = async () => {
+    await db.auth.signOut();
+    location.reload();
+  };
+
+  render();
+}
+
+async function loadData() {
+  const [balanceResult, goalsResult, historyResult] = await Promise.all([
+    db.from('app_state')
+      .select('available_coins')
+      .eq('family_id', familyId)
+      .maybeSingle(),
+    db.from('savings_goals')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('created_at'),
+    db.from('coin_history')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('created_at', { ascending: false })
+      .limit(80)
+  ]);
+
+  if (balanceResult.error) throw balanceResult.error;
+  if (goalsResult.error) throw goalsResult.error;
+  if (historyResult.error) throw historyResult.error;
+
+  state.available = balanceResult.data?.available_coins ?? 0;
+
+  state.goals = (goalsResult.data || []).map(g => ({
+    id: g.id,
+    name: g.name,
+    emoji: g.emoji || '🎁',
+    target: g.target_coins,
+    saved: g.saved_coins
+  }));
+
+  state.history = (historyResult.data || []).map(h => ({
+    text: h.description,
+    amount: h.amount,
+    date: new Date(h.created_at).toLocaleString('fr-FR', {
+      dateStyle: 'short', timeStyle: 'short'
+    })
+  }));
+}
+
+async function refresh() {
+  await loadData();
+  render();
+}
+
+function render() {
+  document.getElementById('available').textContent = state.available;
+
+  const goals = document.getElementById('goals');
+  goals.innerHTML = state.goals.length
+    ? state.goals.map(g => {
+        const pct = g.target > 0
+          ? Math.min(100, Math.round(g.saved / g.target * 100))
+          : 0;
+        return `<article class="goal">
+          <div class="goaltop">
+            <div class="goalicon">${esc(g.emoji)}</div>
+            <div>
+              <div class="goalname">${esc(g.name)}</div>
+              <div class="goalmeta">Objectif : ${g.target} pièces</div>
+            </div>
+            <div class="amount">${g.saved}/${g.target}</div>
+          </div>
+          <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+          <div class="goalfoot">
+            <span>${pct}% atteint</span>
+            <span>${Math.max(0, g.target - g.saved)} pièces restantes</span>
+          </div>
+          <div class="actions">
+            <button class="secondary" data-minus="${g.id}"
+              ${g.saved < 1 ? 'disabled' : ''}
+              aria-label="Rendre une pièce au stock">−</button>
+            <button class="primary" data-plus="${g.id}"
+              ${state.available < 1 ? 'disabled' : ''}
+              aria-label="Ajouter une pièce au projet">＋</button>
+          </div>
+        </article>`;
+      }).join('')
+    : '<div class="empty">Aucun projet pour le moment.</div>';
+
+  document.getElementById('history').innerHTML = state.history.length
+    ? state.history.map(h => `<li>
+        <span>${esc(h.text)}<br>
+          <small style="color:var(--muted)">${esc(h.date)}</small>
+        </span>
+        <b class="${h.amount >= 0 ? 'plus' : 'minus'}">
+          ${h.amount >= 0 ? '+' : ''}${h.amount} 🪙
+        </b>
+      </li>`).join('')
+    : '<li style="color:var(--muted)">Aucune activité pour le moment.</li>';
+
+  document.getElementById('manageGoals').innerHTML =
+    state.goals.map(g => `<div class="row"
+      style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <span>${esc(g.emoji)} ${esc(g.name)}
+        <small style="color:var(--muted)">(${g.saved}/${g.target})</small>
+      </span>
+      <button class="smallbtn" data-delete="${g.id}"
+        style="flex:0 0 auto">Supprimer</button>
+    </div>`).join('');
+}
+
+document.getElementById('goals').addEventListener('click', async e => {
+  const plus = e.target.closest('[data-plus]');
+  const minus = e.target.closest('[data-minus]');
+
+  try {
+    if (plus) {
+      const { error } = await db.rpc('allocate_coin', {
+        p_goal_id: plus.dataset.plus,
+        p_direction: 'to_goal'
+      });
+      if (error) throw error;
+      await refresh();
+
+      const goal = state.goals.find(g => g.id === plus.dataset.plus);
+      if (goal && goal.saved === goal.target) {
+        showMessage('Bravo ! Objectif atteint ! 🎉');
+      }
+    }
+
+    if (minus) {
+      const { error } = await db.rpc('allocate_coin', {
+        p_goal_id: minus.dataset.minus,
+        p_direction: 'to_balance'
+      });
+      if (error) throw error;
+      await refresh();
+    }
+  } catch (err) {
+    showMessage(err.message || 'Opération impossible.');
+  }
 });
-function modal(title,text,label,value,callback){pending=callback;document.getElementById('modalTitle').textContent=title;document.getElementById('modalText').textContent=text;document.getElementById('modalLabel').textContent=label;document.getElementById('modalInput').value=value||'';document.getElementById('modal').classList.remove('hidden');document.getElementById('modalInput').focus()}
-function closeModal(){document.getElementById('modal').classList.add('hidden');pending=null}
-document.getElementById('parentBtn').onclick=()=>modal('Espace parent','Entre ton code parent pour gérer les pièces.','Code parent','',v=>{if(v===state.pin){document.getElementById('parentPanel').classList.remove('hidden');document.getElementById('parentPanel').scrollIntoView({behavior:'smooth'});closeModal()}else{document.getElementById('modalText').textContent='Code incorrect. Réessaie.'}});
-document.getElementById('cancelModal').onclick=closeModal;document.getElementById('confirmModal').onclick=()=>pending&&pending(document.getElementById('modalInput').value);document.getElementById('modalInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('confirmModal').click()});
-document.getElementById('closeParent').onclick=()=>{document.getElementById('parentPanel').classList.add('hidden');};
-document.querySelectorAll('[data-award]').forEach(b=>b.onclick=()=>{let n=+b.dataset.award;state.available+=n;log(`Pièces offertes${document.getElementById('reason').value.trim()?' · '+document.getElementById('reason').value.trim():''}`,n);document.getElementById('reason').value='';save()});
-document.getElementById('addGoal').onclick=()=>{let name=document.getElementById('newName').value.trim(),target=+document.getElementById('newTarget').value,emoji=document.getElementById('newEmoji').value.trim()||'🎁';if(!name||target<1)return alert('Ajoute un nom et un objectif valide.');state.goals.push({id:crypto.randomUUID(),name,emoji,target,saved:0});document.getElementById('newName').value='';save()};
-document.getElementById('manageGoals').onclick=e=>{let id=e.target.dataset.delete;if(!id)return;if(!confirm('Supprimer ce projet ? Les pièces déjà affectées seront rendues au solde disponible.'))return;let g=state.goals.find(x=>x.id===id);if(g){state.available+=g.saved;log(`Récupération des pièces · ${g.name}`,g.saved);state.goals=state.goals.filter(x=>x.id!==id);save()}};
-document.getElementById('homeTab').onclick=()=>{document.getElementById('historyPanel').classList.add('hidden');document.getElementById('homeTab').classList.add('active');document.getElementById('historyTab').classList.remove('active')};
-document.getElementById('historyTab').onclick=()=>{document.getElementById('historyPanel').classList.remove('hidden');document.getElementById('historyTab').classList.add('active');document.getElementById('homeTab').classList.remove('active')};
-document.getElementById('homeTab').onclick=()=>{document.getElementById('historyPanel').classList.add('hidden');document.getElementById('homeTab').classList.add('active');document.getElementById('historyTab').classList.remove('active')};
-document.getElementById('parentPanel').addEventListener('click',e=>{if(e.target.id==='pinBtn')modal('Nouveau code','Choisis un code parent à 4 chiffres.','Nouveau code','',v=>{if(!/^\d{4}$/.test(v))return alert('Le code doit contenir 4 chiffres.');state.pin=v;save();closeModal()})});
-document.getElementById('resetBtn').onclick=()=>{if(confirm('Effacer tous les projets et toutes les pièces ?')){state=structuredClone(defaults);save()}};
-document.getElementById('exportBtn').onclick=()=>{let a=document.createElement('a'),blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='les-petites-pieces-sauvegarde.json';a.click();URL.revokeObjectURL(a.href)};
-document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
-document.getElementById('importFile').onchange=async e=>{try{let obj=JSON.parse(await e.target.files[0].text());if(!Array.isArray(obj.goals)||typeof obj.available!=='number')throw 0;state={...defaults,...obj};save();alert('Sauvegarde importée.')}catch{alert('Fichier de sauvegarde invalide.')}};
-if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
-render();
+
+function modal(title, text, label, value, callback) {
+  pending = callback;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  document.getElementById('modalLabel').textContent = label;
+  document.getElementById('modalInput').value = value || '';
+  document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('modalInput').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+  pending = null;
+}
+
+document.getElementById('parentBtn').onclick = () => {
+  if (role === 'parent') {
+    document.getElementById('parentPanel').classList.remove('hidden');
+    document.getElementById('parentPanel').scrollIntoView({behavior:'smooth'});
+  }
+};
+
+document.getElementById('cancelModal').onclick = closeModal;
+
+document.getElementById('confirmModal').onclick = () => {
+  if (pending) pending(document.getElementById('modalInput').value);
+};
+
+document.getElementById('modalInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    document.getElementById('confirmModal').click();
+  }
+});
+
+document.getElementById('closeParent').onclick = () => {
+  document.getElementById('parentPanel').classList.add('hidden');
+};
+
+document.querySelectorAll('[data-award]').forEach(button => {
+  button.onclick = async () => {
+    if (role !== 'parent') return;
+
+    const amount = Number(button.dataset.award);
+    const reason = document.getElementById('reason').value.trim();
+    const description = 'Pièces offertes' + (reason ? ' · ' + reason : '');
+
+    try {
+      const { error } = await db.rpc('award_coins', {
+        p_amount: amount,
+        p_description: description
+      });
+      if (error) throw error;
+      document.getElementById('reason').value = '';
+      await refresh();
+    } catch (err) {
+      showMessage(err.message || 'Attribution impossible.');
+    }
+  };
+});
+
+document.getElementById('addGoal').onclick = async () => {
+  if (role !== 'parent') return;
+
+  const name = document.getElementById('newName').value.trim();
+  const target = Number(document.getElementById('newTarget').value);
+  const emoji = document.getElementById('newEmoji').value.trim() || '🎁';
+
+  if (!name || !Number.isInteger(target) || target < 1) {
+    return showMessage('Ajoute un nom et un objectif valide.');
+  }
+
+  try {
+    const { error } = await db.rpc('create_goal', {
+      p_name: name,
+      p_emoji: emoji,
+      p_target: target
+    });
+    if (error) throw error;
+
+    document.getElementById('newName').value = '';
+    document.getElementById('newTarget').value = '';
+    document.getElementById('newEmoji').value = '';
+    await refresh();
+  } catch (err) {
+    showMessage(err.message || 'Création impossible.');
+  }
+};
+
+document.getElementById('manageGoals').onclick = async e => {
+  if (role !== 'parent') return;
+  const id = e.target.dataset.delete;
+  if (!id) return;
+
+  if (!confirm('Supprimer ce projet ? Les pièces déjà affectées seront rendues au solde disponible.')) {
+    return;
+  }
+
+  try {
+    const { error } = await db.rpc('delete_goal', { p_goal_id: id });
+    if (error) throw error;
+    await refresh();
+  } catch (err) {
+    showMessage(err.message || 'Suppression impossible.');
+  }
+};
+
+document.getElementById('homeTab').onclick = () => {
+  document.getElementById('historyPanel').classList.add('hidden');
+  document.getElementById('homeTab').classList.add('active');
+  document.getElementById('historyTab').classList.remove('active');
+};
+
+document.getElementById('historyTab').onclick = () => {
+  document.getElementById('historyPanel').classList.remove('hidden');
+  document.getElementById('historyTab').classList.add('active');
+  document.getElementById('homeTab').classList.remove('active');
+};
+
+createLoginScreen();
+
+db.auth.getSession().then(async ({ data, error }) => {
+  if (error) return;
+  if (data.session) {
+    try {
+      await startApp(data.session.user);
+    } catch (err) {
+      document.getElementById('loginError').textContent =
+        err.message || 'Erreur de connexion.';
+    }
+  }
+});
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+     }
 </script>
 </body></html>
