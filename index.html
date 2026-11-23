@@ -46,18 +46,72 @@ footer{text-align:center;color:#777;font-size:11px;margin:28px 0}
 
 <div class="tabs"><button class="tab active" id="homeTab">Mes projets</button><button class="tab" id="historyTab">Historique</button></div>
 <section id="historyPanel" class="panel hidden"><h3 style="margin:0 0 10px;font:600 19px Georgia,serif">Les dernières pièces</h3><ul class="history" id="history"></ul></section>
+
 <section id="parentPanel" class="panel hidden">
- <div class="row"><div><h2 style="font:600 21px Georgia,serif;margin:0">Espace parent</h2><div class="sub">Gérer les pièces et les projets</div></div><button class="smallbtn" id="closeParent">Fermer</button></div>
- <div class="row" style="margin-top:14px"><button class="secondary" data-award="1">＋ 1 pièce</button><button class="secondary" data-award="2">＋ 2 pièces</button><button class="secondary" data-award="5">＋ 5 pièces</button><button class="secondary" data-award="10">＋ 10 pièces</button></div>
- <label for="reason">Pourquoi ? (facultatif)</label><input id="reason" placeholder="Devoirs, rangement, coup de main…">
- <div class="sectionhead"><div><h2 style="font-size:18px">Ajouter un projet</h2><p>Un objectif à atteindre</p></div></div>
- <div class="row"><div><label for="newName">Nom du projet</label><input id="newName" placeholder="Ex. : Un nouveau livre"></div><div style="max-width:90px"><label for="newEmoji">Icône</label><input id="newEmoji" value="🎁" maxlength="4"></div></div>
- <div class="row"><div><label for="newTarget">Objectif (pièces)</label><input id="newTarget" type="number" min="1" value="20"></div><div style="align-self:end"><button class="primary" id="addGoal" style="width:100%">Créer le projet</button></div></div>
- <div class="sectionhead"><div><h2 style="font-size:18px">Mes projets actuels</h2></div></div><div id="manageGoals"></div>
- <p class="notice">Version 1 : les données sont enregistrées sur cet appareil. La synchronisation entre ton téléphone et la tablette sera ajoutée dans une prochaine étape. Pense à exporter une sauvegarde si tu changes d'appareil.</p>
- <div class="row" style="margin-top:12px"><button class="smallbtn" id="exportBtn">Exporter une sauvegarde</button><button class="smallbtn" id="importBtn">Importer</button><input type="file" id="importFile" accept="application/json" class="hidden"></div>
- <div style="margin-top:15px"><button class="smallbtn" id="pinBtn">Modifier le code parent</button> <button class="smallbtn" id="resetBtn" style="color:var(--red)">Réinitialiser les données</button></div>
+  <div class="row">
+    <div>
+      <h2 style="font:600 21px Georgia,serif;margin:0">Espace parent</h2>
+      <div class="sub">Gérer les pièces et les projets</div>
+    </div>
+    <button class="smallbtn" id="closeParent">Fermer</button>
+  </div>
+
+  <div class="sectionhead">
+    <div><h2 style="font-size:18px">Ajouter des pièces</h2></div>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <button class="secondary" data-award="1">＋ 1</button>
+    <button class="secondary" data-award="2">＋ 2</button>
+    <button class="secondary" data-award="5">＋ 5</button>
+    <button class="secondary" data-award="10">＋ 10</button>
+  </div>
+
+  <label for="reason">Motif (facultatif)</label>
+  <input id="reason" placeholder="Devoirs, rangement, coup de main…">
+
+  <div class="sectionhead">
+    <div><h2 style="font-size:18px">Retirer des pièces</h2></div>
+  </div>
+  <div class="row">
+    <button class="secondary" data-remove="1">− 1</button>
+    <button class="secondary" data-remove="5">− 5</button>
+    <button class="secondary" data-remove="10">− 10</button>
+  </div>
+
+  <div class="sectionhead">
+    <div>
+      <h2 style="font-size:18px">Ajouter un projet</h2>
+      <p>Un objectif à atteindre</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label for="newName">Nom du projet</label>
+      <input id="newName" placeholder="Ex. : Un nouveau livre">
+    </div>
+    <div style="max-width:90px">
+      <label for="newEmoji">Icône</label>
+      <input id="newEmoji" value="🎁" maxlength="4">
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label for="newTarget">Objectif (pièces)</label>
+      <input id="newTarget" type="number" min="1" value="20">
+    </div>
+    <div style="align-self:end">
+      <button class="primary" id="addGoal" style="width:100%">Créer le projet</button>
+    </div>
+  </div>
+
+  <div class="sectionhead">
+    <div><h2 style="font-size:18px">Mes projets actuels</h2></div>
+  </div>
+  <div id="manageGoals"></div>
 </section>
+
 <footer>Harmony's coins· Une petite banque sympatique</footer>
 </div>
 <div id="modal" class="modalback hidden"><div class="modal"><h3 id="modalTitle">Espace parent</h3><p id="modalText">Entre ton code parent pour continuer.</p><label id="modalLabel" for="modalInput">Code parent</label><input id="modalInput" type="password" inputmode="numeric" autocomplete="off"><div class="row" style="margin-top:15px"><button class="smallbtn" id="cancelModal">Annuler</button><button class="primary" id="confirmModal">Valider</button></div></div></div>
