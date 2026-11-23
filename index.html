@@ -469,6 +469,40 @@ document.querySelectorAll('[data-award]').forEach(button => {
   };
 });
 
+document.querySelectorAll('[data-remove]').forEach(button => {
+  button.onclick = async () => {
+    if (role !== 'parent') return;
+
+    const amount = Number(button.dataset.remove);
+    const reason = document.getElementById('reason').value.trim();
+
+    if (state.available < amount) {
+      return showMessage('Le solde disponible est insuffisant.');
+    }
+
+    const description = 'Retrait de pièces' +
+      (reason ? ' · ' + reason : '');
+
+    if (!confirm(`Retirer ${amount} pièce(s) du solde disponible ?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await db.rpc('remove_coins', {
+        p_amount: amount,
+        p_description: description
+      });
+
+      if (error) throw error;
+
+      document.getElementById('reason').value = '';
+      await refresh();
+    } catch (err) {
+      showMessage(err.message || 'Retrait impossible.');
+    }
+  };
+});
+  
 document.getElementById('addGoal').onclick = async () => {
   if (role !== 'parent') return;
 
