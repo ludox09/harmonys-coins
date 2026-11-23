@@ -325,33 +325,41 @@ function render() {
 
   const goals = document.getElementById('goals');
   goals.innerHTML = state.goals.length
-    ? state.goals.map(g => {
-        const pct = g.target > 0
-          ? Math.min(100, Math.round(g.saved / g.target * 100))
-          : 0;
-        return `<article class="goal">
-          <div class="goaltop">
-            <div class="goalicon">${esc(g.emoji)}</div>
-            <div>
-              <div class="goalname">${esc(g.name)}</div>
-              <div class="goalmeta">Objectif : ${g.target} pièces</div>
-            </div>
-            <div class="amount">${g.saved}/${g.target}</div>
-          </div>
-          <div class="track"><div class="fill" style="width:${pct}%"></div></div>
-          <div class="goalfoot">
-            <span>${pct}% atteint</span>
-            <span>${Math.max(0, g.target - g.saved)} pièces restantes</span>
-          </div>
-          <div class="actions">
-            <button class="secondary" data-minus="${g.id}"
-              ${g.saved < 1 ? 'disabled' : ''}
-              aria-label="Rendre une pièce au stock">−</button>
-            <button class="primary" data-plus="${g.id}"
-              ${state.available < 1 ? 'disabled' : ''}
-              aria-label="Ajouter une pièce au projet">＋</button>
-          </div>
-        </article>`;
+    ? state.goals.map(g => {        
+const pct = g.target > 0
+  ? Math.min(100, Math.round(g.saved / g.target * 100))
+  : 0;
+const completed = g.saved >= g.target;
+
+return `<article class="goal">
+  <div class="goaltop">
+    <div class="goalicon">${esc(g.emoji)}</div>
+    <div>
+      <div class="goalname">${esc(g.name)}</div>
+      <div class="goalmeta">Objectif : ${g.target} pièces</div>
+    </div>
+    <div class="amount">${g.saved}/${g.target}</div>
+  </div>
+
+  ${completed
+    ? `<div class="goalfoot"><strong>Objectif atteint ! 🎉</strong></div>`
+    : `<div class="track"><div class="fill" style="width:${pct}%"></div></div>
+       <div class="goalfoot">
+         <span>${pct}% atteint</span>
+         <span>${Math.max(0, g.target - g.saved)} pièces restantes</span>
+       </div>`
+  }
+
+  <div class="actions">
+    <button class="secondary" data-minus="${g.id}"
+      ${completed || g.saved < 1 ? 'disabled' : ''}
+      aria-label="Rendre une pièce au stock">−</button>
+    <button class="primary" data-plus="${g.id}"
+      ${completed || state.available < 1 ? 'disabled' : ''}
+      aria-label="Ajouter une pièce au projet">＋</button>
+  </div>
+</article>`;
+      
       }).join('')
     : '<div class="empty">Aucun projet pour le moment.</div>';
 
